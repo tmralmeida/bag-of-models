@@ -40,7 +40,7 @@ class BDD100kDataset(object):
         if self.mode == 'train' or self.mode == 'val':
             self.imgs = os.listdir(os.path.join(PATH_IMAGES,self.mode))
             self.lbls = os.path.join(PATH_LABELS, 'bdd100k_labels_images_' + self.mode + '.json')
-            self.labels_file = pd.read_json(self.lbls)
+            self.labels_file = pd.read_json(self.lbls)[:50]
         else:
             raise Exception("Oops. There are only two modes: 'training' and 'validation'!")
             

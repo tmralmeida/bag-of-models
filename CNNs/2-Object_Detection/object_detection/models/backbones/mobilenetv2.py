@@ -1,16 +1,16 @@
-
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 import math
 
-
-# MobileNetV2 from torchvision
-def MobileNetV2_pt():
+# pretrained from torchvision
+def mobilenetv2_pt():
+    """MobileNetV2 feature extractor to the Faster RCNN architecture
+    """
     return torchvision.models.mobilenet_v2(pretrained=True).features
 
-
+# from scratch
 # Modified from https://github.com/tonylins/pytorch-mobilenet-v2/blob/master/MobileNetV2.py.
 # In this version, Relu6 is replaced with Relu to make it ONNX compatible.
 # BatchNorm Layer is optional to make it easy do batch norm confusion.
@@ -43,8 +43,7 @@ def conv_1x1_bn(inp, oup, use_batch_norm=True, onnx_compatible=False):
             nn.Conv2d(inp, oup, 1, 1, 0, bias=False),
             ReLU(inplace=True)
         )
-
-
+        
 class InvertedResidual(nn.Module):
     def __init__(self, inp, oup, stride, expand_ratio, use_batch_norm=True, onnx_compatible=False):
         super(InvertedResidual, self).__init__()
@@ -107,9 +106,10 @@ class InvertedResidual(nn.Module):
             return x + self.conv(x)
         else:
             return self.conv(x)
-
-
+        
 class MobileNetV2(nn.Module):
+    """MobileNetV2 to the SSD acrhitecture 
+    """
     def __init__(self, n_class=1000, input_size=224, width_mult=1., dropout_ratio=0.2,
                  use_batch_norm=True, onnx_compatible=False):
         super(MobileNetV2, self).__init__()
@@ -179,58 +179,3 @@ class MobileNetV2(nn.Module):
                 n = m.weight.size(1)
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
-                
-                
-# DarkNet53
-def conv_block(in_channels, out_channels, kernel_size = 3, stride = 1, padding = 1):
-    return nn.Sequential(OrderedDict([
-        ('conv', nn.Conv2d(in_channels, out_channels, 
-                            kernel_size, stride, padding, bias = False)),
-        ('bn', nn.BatchNorm2d(out_channels)),
-        ('relu', nn.LeakyReLU(0.1))
-    ]))
-
-class BasicBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(BasicBlock, self).__init__()
-        self.conv1 = conv_block(in_channels, out_channels // 2, kernel_size = 1, padding = 0)
-        self.conv2 = conv_block(out_channels // 2, out_channels, kernel_size = 3, padding = 1)
-        
-    def forward(self, input):
-        x = self.conv1(input)
-        x = self.conv2(x)
-        return input + x
-    
-def make_layer(in_channels, out_channels, num_blocks, stride):
-    layers = [
-        conv_block(in_channels, out_channels, stride=stride),
-    ]
-    
-    for _ in range(num_blocks):
-        layers += [BasicBlock(out_channels, out_channels)]
-    return nn.Sequential(*layers)
-
-class DarkNet53(nn.Sequential):
-    def __init__(self, in_channels = 3, num_classes = 1000):
-        
-        features = nn.Sequential(OrderedDict([
-            ('stem', conv_block(in_channels, 32, stride=1)),
-            ('layer1', make_layer(32, 64, 1, stride=2)),
-            ('layer2', make_layer(64, 128, 2, stride=2)),
-            ('layer3', make_layer(128, 256, 8, stride=2)),
-            ('layer4', make_layer(256, 512, 8, stride=2)),
-            ('layer5', make_layer(512, 1024, 4, stride=2)),
-        ]))
-        
-        classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Flatten(),
-            # Maybe add a Dropout here!!!
-            nn.Linear(1024, num_classes),
-        )
-        
-        super().__init__(OrderedDict([
-            ('features', features),
-            ('classifier', classifier),
-        ]))
-        

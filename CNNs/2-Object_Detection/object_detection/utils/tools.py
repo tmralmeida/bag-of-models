@@ -18,18 +18,29 @@ def get_arguments():
         default = 'bdd100k',
         help=("The dataset to use to train the model; "
               "Default: bdd100k; "
-              "Possible choices: bdd100k")
+              "Possible choices bdd100k")
     )
 
     #Model choice
     parser.add_argument(
         "--model",
         "-m",
-        choices = ["faster", "ssd300", "ssd512", "yolov3"],
+        choices = ["faster", "ssd512", "yolov3", "yolov3_spp", "yolov4"],
         default = 'faster',
         help = ("Model to train; "
-                "Default: faster-rcnn; "
-                "Possible choices: faster-rcnn, ssd300 and ssd512 for now")
+                "Default: faster; "
+                "Possible choices: faster, ssd512, yolov3, yolov3_spp and yolov4")
+    )
+    
+    #backbone choice
+    parser.add_argument(
+        "--feature_extractor",
+        "-feat",
+        choices = ["mobilenetv2", "mobilenetv2","resnet50", "resnet50fpn"],
+        default = "mobilenetv2",
+        help = ("Feature extractor of the model; "
+                "Default: mobilenetv2; "
+                "Possible choices: mobilenetv2,resnet50, resnet50fpn for faster and mobilenetv2 and resnet50 for ssd")
     )
 
     # Hyperparameters
@@ -49,14 +60,14 @@ def get_arguments():
 
     )
     parser.add_argument(
-        "--learning-rate",
+        "--learning_rate",
         "-lr",
         type=float,
         default=1e-3,
         help="Learning rate value; Default: 1e-3"
     )
     parser.add_argument(
-        "--weight-decay",
+        "--weight_decay",
         "-wd",
         type = float,
         default = 1e-4,
@@ -77,12 +88,7 @@ def get_arguments():
         default = 'cuda:0',
         help = "Device on which the network will be trained; Default: cuda:2"
     )
-    parser.add_argument(
-        "--save-model",
-        "-sm",
-        default = 'model.pth',
-        help = "Name of the file to save the model"
-    )
+  
     parser.add_argument(
         "--distributed",
         "-dist",
@@ -96,13 +102,23 @@ def get_arguments():
         '--state_dict',
         '-sd', 
         type=str, 
-        required=False)
+        required=False
+    )
 
     parser.add_argument(
         '--pretrained_model',
         '-pm',
         type=str,
-        required=False)
+        required=False
+    )
+    
+    parser.add_argument(
+    '--imgs_rect',
+    '-rect',
+    default=True,
+    type=bool,
+    required=False
+    )
 
     
     

@@ -3,11 +3,13 @@ from torch.utils.data import DataLoader
 import time
 import numpy as np
 
-from models.faster_rcnn import FasterRCNN
-from datasets.bdd100k import BDD100kDataset
-from utils.evaluation import convert_to_coco_api, CocoEvaluator
-from utils.prepare_data import get_tfms_faster,transform_inputs, collate_fn
-from utils.tools import get_arguments
+from object_detection.models.faster.faster_rcnn import (resnet50fpn_fasterRCNN, 
+                                                        resnet50_fasterRCNN, 
+                                                        mobilenetv2_fasterRCNN)
+from object_detection.datasets.bdd100k import BDD100kDataset 
+from object_detection.utils.evaluation import convert_to_coco_api, CocoEvaluator
+from object_detection.utils.prepare_data import get_tfms_faster,transform_inputs, collate_fn
+from object_detection.utils.tools import get_arguments
 
 @torch.no_grad()
 def evaluate(model,data_loader,device):
@@ -22,17 +24,20 @@ def evaluate(model,data_loader,device):
     coco = convert_to_coco_api(data_loader.dataset)
     coco_evaluator = CocoEvaluator(coco)
     evaluator_times = []
+    proc_times = []
     for image, targets in data_loader:
         image, targets = transform_inputs(image, targets, device)
+        init = time.time()
         outputs = model(image)
+        proc_times.append(time.time() - init)
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_times.append(time.time() - evaluator_time) 
-
     print("Averaged stats:", np.mean(evaluator_times))
+    print("Averaged proc time:", np.mean(proc_times))
     coco_evaluator.synchronize_between_processes()
     # accumulate predictions from all images
     coco_evaluator.accumulate()
@@ -43,13 +48,18 @@ def evaluate(model,data_loader,device):
 args = get_arguments()
 
 if args.model == 'faster':
-    model = FasterRCNN(11)
+    if (args.feature_extractor == 'mobilenetv2'):
+        model = mobilenetv2_fasterRCNN(11)
+    elif (args.feature_extractor == 'resnet50fpn'):
+        model = resnet50fpn_fasterRCNN(11)
+    elif (args.feature_extractor == 'resnet50'):
+        model = resnet50_fasterRCNN(11)
 else:
     sys.exit("You did not pick the right script! Exiting...")
 
 train_tfms, val_tfms = get_tfms_faster()
-if (args.dataset == 'bdd100k'):
-  val_ds = BDD100kDataset(transforms = val_tfms,mode = 'val')
+if args.dataset == 'bdd100k':
+  val_ds = BDD100kDataset(transforms = val_tfms, mode = 'val')
   val_loader = DataLoader(
      val_ds,
      batch_size = args.batch_size,
