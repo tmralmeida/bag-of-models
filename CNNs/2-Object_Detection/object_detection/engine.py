@@ -9,7 +9,7 @@ from ignite.contrib.handlers import ProgressBar
 from object_detection.utils.prepare_data import transform_inputs
 from object_detection.utils.evaluation import CocoEvaluator
 from object_detection.models.ssd.predictor import Predictor
-from object_detection.datasets.bdd100k_yolo import xyxy2xywh
+from object_detection.datasets.datamatrix_yolo import xyxy2xywh
 from object_detection.utils.yolo.yolo_utils import *
 
 
@@ -149,7 +149,7 @@ def test_data(model_name, model, batch, device):
         with torch.no_grad():
             inf_out, train_out = model(batch_imgs)
         output = non_max_suppression(inf_out, conf_thres=0.25, iou_thres = 0.6) #conf = 0.25 to decrease the training time
-        for si, pred in enumerate(output):
+        for si, pred in enumerate(output):          
             if pred is None:
                 res.update({targets[si]["image_id"].item():
                               {"boxes": torch.tensor([[0,0,0,0]]),
@@ -170,14 +170,13 @@ def test_data(model_name, model, batch, device):
         
     
 
-def create_detection_evaluator(model_name, model, device, coco_api_val_dataset, logging):
+def create_detection_evaluator(model_name, model, device, coco_api_val_dataset, logging = True):
     def update_model(engine, batch):
         images, targets, res = test_data(model_name, model, batch, device)
         engine.state.coco_evaluator.update(res)
         return images, targets, res
     
     evaluator = Engine(update_model)
-    
     if logging:
         ProgressBar(persist=False) \
             .attach(evaluator)
@@ -192,10 +191,10 @@ def create_detection_evaluator(model_name, model, device, coco_api_val_dataset, 
         engine.state.coco_evaluator.synchronize_between_processes()
         print("\nResults val set:")
         engine.state.coco_evaluator.accumulate()
-        engine.state.coco_evaluator.summarize()
+        if logging:
+            engine.state.coco_evaluator.summarize()
      
         
         
     return evaluator
-
 
