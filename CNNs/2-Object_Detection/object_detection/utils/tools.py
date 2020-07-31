@@ -9,16 +9,26 @@ def get_arguments():
     """Determines each command lines input and parses them
     """
     parser = ArgumentParser()
+    
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
 
     #Dataset choice
     parser.add_argument(
         "--dataset",
         "-d",
-        choices = ['bdd100k'],
+        choices = ['bdd100k', 'coco'],
         default = 'bdd100k',
         help=("The dataset to use to train the model; "
               "Default: bdd100k; "
-              "Possible choices bdd100k")
+              "Possible choices bdd100k, coco")
     )
 
     #Model choice
@@ -32,7 +42,7 @@ def get_arguments():
                 "Possible choices: faster, ssd512, yolov3, yolov3_spp and yolov4")
     )
     
-    #backbone choice
+    #backbone choices
     parser.add_argument(
         "--feature_extractor",
         "-feat",
@@ -42,6 +52,14 @@ def get_arguments():
                 "Default: mobilenetv2; "
                 "Possible choices: mobilenetv2,resnet50, resnet50fpn for faster and mobilenetv2 and resnet50 for ssd")
     )
+    parser.add_argument(
+        "--pretrained",
+        "-pre",
+        default=True,
+        type=str2bool,
+        required=False,
+        help = ("Torchvision provides COCO weights for Resnet50 FPN and ImageNet weights for Resnet50 and MobileNetV2.")
+        )
 
     # Hyperparameters
     parser.add_argument(
@@ -82,13 +100,7 @@ def get_arguments():
         default=8,
         help = "Number of subprocesses to use for data loading; Default: 4"
     )
-    parser.add_argument(
-        "--device",
-        "-dev",
-        default = 'cuda:0',
-        help = "Device on which the network will be trained; Default: cuda:2"
-    )
-  
+
     parser.add_argument(
         "--distributed",
         "-dist",
@@ -106,18 +118,11 @@ def get_arguments():
     )
 
     parser.add_argument(
-        '--pretrained_model',
-        '-pm',
-        type=str,
+        '--imgs_rect',
+        '-rect',
+        default=True,
+        type=str2bool,
         required=False
-    )
-    
-    parser.add_argument(
-    '--imgs_rect',
-    '-rect',
-    default=True,
-    type=bool,
-    required=False
     )
 
     
@@ -128,14 +133,10 @@ def get_scheduler(optimizer,epochs, learning_rate, train_loader_size):
     scheduler =   CosineAnnealingScheduler(optimizer, 
                                           'lr',
                                           learning_rate, 
-                                          learning_rate / 1000,
+                                          learning_rate / 100,
                                           epochs * train_loader_size,)
     scheduler = create_lr_scheduler_with_warmup(scheduler, 
                                                 0, 
                                                 learning_rate, 
-                                                1000)
+                                                100)
     return scheduler
-
-
-
-

@@ -317,7 +317,3 @@ def all_gather(data):
         data_list.append(pickle.loads(buffer))
 
     return data_list
-
-
-
-

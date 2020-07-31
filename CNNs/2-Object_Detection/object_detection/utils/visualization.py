@@ -3,16 +3,50 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-LBLS_MAP = {
-    0 : 'background',
-    1 : 'data matrix',
-} 
-        
-COLORMAP = {
-    'BACKGROUND' : (30,30,30),
-    'data matrix' : (255,0,0),
-}
+# LBLS_MAP = {	
+#     0 : 'BACKGROUND',	
+#     1 : 'bus',	
+#     2 : 'traffic light',	
+#     3 : 'traffic sign',	
+#     4 : 'person',	
+#     5 : 'bike',	
+#     6 : 'truck',	
+#     7 : 'motor',	
+#     8 : 'car',	
+#     9 : 'train',	
+#     10 : 'rider'    	
+# }   	
 
+
+# Yolo:	
+LBLS_MAP =  {
+    0 : 'bus',	   
+    1 : 'traffic light',	  
+    2 : 'traffic sign',	
+    3 : 'person',	
+    4 : 'bike',	
+    5 : 'truck',	
+    6 : 'motor',	
+    7 : 'car',	
+    8 : 'train',	
+    9 : 'rider'    	
+} 	
+
+
+COLORMAP = {	
+    'BACKGROUND' : (30,30,30),	   
+    'bus' : (128,128,128),	    
+    'traffic light': (0,0,0),	
+    'traffic sign': (0,255,255),	
+    'person': (255,0,0),	
+    'bike':(200,0,127),	
+    'truck':(100,125,125),	
+    'motor':(10,10,10),	
+    'car':(0,0,255),	
+    'train':(200,200,200),	
+    'rider':(120,0,120)    	
+}
+            
 TEXT_COLOR = (255, 255, 255)
 
 
