@@ -17,7 +17,7 @@ from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
 #object_detection modules
 from object_detection.utils.tools import (get_arguments, get_scheduler)
 from object_detection.models.yolo.yolo_darknet import Darknet
-from object_detection.datasets.bdd100k import BDD100kDataset
+from object_detection.datasets.bdd100k_yolo import BDD100kDataset
 from object_detection.engine import (create_detection_trainer, create_detection_evaluator)
 from object_detection.utils.evaluation import convert_to_coco_api 
 from object_detection.losses.yolo_loss import compute_loss as loss_fn

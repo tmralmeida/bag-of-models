@@ -62,23 +62,7 @@ if args.state_dict is not None:
     model.load_state_dict(state_dict, strict=True)
     params = model.parameters()
 
-elif args.pretrained_model is not None:
-    model.init_from_pretrained_ssd(args.pretrained_model)
-    freeze_net_layers(model.base_net)
-    params = itertools.chain(model.source_layer_add_ons.parameters(), 
-                             model.extras.parameters(),
-                             model.regression_headers.parameters(), 
-                             model.classification_headers.parameters())
-    params = [
-        {'params': itertools.chain(
-            model.source_layer_add_ons.parameters(),
-            model.extras.parameters()
-        ), 'lr': args.learning_rate},
-        {'params': itertools.chain(
-            model.regression_headers.parameters(),
-            model.classification_headers.parameters()
-        )}
-    ]
+
 else:
     params = model.parameters() # from scratch
     

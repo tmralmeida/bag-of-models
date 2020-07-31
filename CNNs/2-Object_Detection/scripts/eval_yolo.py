@@ -5,7 +5,7 @@ import numpy as np
 import time 
 
 from object_detection.models.yolo.yolo_darknet import Darknet
-from object_detection.datasets.bdd100k import BDD100kDataset 
+from object_detection.datasets.bdd100k_yolo import BDD100kDataset 
 from object_detection.utils.evaluation import convert_to_coco_api, CocoEvaluator
 from object_detection.utils.tools import get_arguments
 from object_detection.utils.prepare_data import transform_inputs, collate_fn
