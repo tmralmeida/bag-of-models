@@ -81,16 +81,16 @@ if (args.dataset == 'bdd100k'):
     model.gr = 1.0
     hyp['cls'] *= model.nc / 80
     # training set
-    train_ds = DataMatrixDataset(mode = "train", 
-                                img_size = 896,
-                                batch_size = args.batch_size,
-                                augment = True,
-                                hyp = hyp,  # augmentation hyperparameters
-                                rect = args.imgs_rect)
+    train_ds = BDD100kDataset(mode = "train", 
+                              img_size = 896,
+                              batch_size = args.batch_size,
+                              augment = True,
+                              hyp = hyp,  # augmentation hyperparameters
+                              rect = args.imgs_rect)
 
 
     # validation set
-    val_ds = DataMatrixDataset(mode = "val",
+    val_ds = BDD100kDataset(mode = "val",
                             img_size = 896,
                             batch_size = args.batch_size,
                             hyp = hyp,
