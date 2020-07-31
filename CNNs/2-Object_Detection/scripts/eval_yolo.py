@@ -4,8 +4,8 @@ import sys
 import numpy as np
 import time 
 
-from object_detection.models.yolov3.yolov3_darknet import Darknet
-from object_detection.datasets.bdd100k import BDD100kDataset
+from object_detection.models.yolo.yolo_darknet import Darknet
+from object_detection.datasets.bdd100k import BDD100kDataset 
 from object_detection.utils.evaluation import convert_to_coco_api, CocoEvaluator
 from object_detection.utils.tools import get_arguments
 from object_detection.utils.prepare_data import transform_inputs, collate_fn
@@ -42,7 +42,7 @@ def evaluate(model,data_loader,device):
     - device: device on which the network will be evaluated
     """
     cpu_device = torch.device("cpu")
-    model.eval()
+    model.eval().to(device)
     coco = convert_to_coco_api(data_loader.dataset)
     coco_evaluator = CocoEvaluator(coco)
     evaluator_times = []
@@ -55,13 +55,11 @@ def evaluate(model,data_loader,device):
 
         
         init = time.time()
-        inf_out, eval_out = model.to(device)(batch)
+        inf_out, eval_out = model(batch)
         proc_times.append(time.time() - init)
         
         output = non_max_suppression(inf_out, conf_thres=0.001, iou_thres = 0.6)
         for si, pred in enumerate(output):
-            taregs = targets[si]["boxes"]
-            shapes = targets[si]["shapes"]
             height, width = images[si].shape[1:]
             if pred is None:
                 box = torch.tensor([[0,0,0,0]])
@@ -102,15 +100,17 @@ if (args.model == "yolov3" or args.model == "yolov3_spp" or args.model == "yolov
     model = Darknet(yolo_config)
 else:
     sys.exit("You did not pick the right script! Exiting...")
-    
+  
+device = torch.device("cuda")
+  
 if args.dataset == 'bdd100k':    
-    val_ds = BDD100kDataset(mode = "val",
-                                img_size = 608,
+    test_ds = BDD100kDataset(mode = "test",
+                                img_size = 896,
                                 batch_size = args.batch_size,
                                 hyp = hyp,
                                 rect = True)
     
-    val_loader = DataLoader(val_ds,
+    val_loader = DataLoader(test_ds,
                         batch_size = args.batch_size,
                         num_workers = args.workers,
                         pin_memory = True,
@@ -123,4 +123,4 @@ if args.state_dict:
 else:
     raise ValueError("You have to load a model through the --state_dict argument!")
 
-evaluate(model, val_loader, args.device)
+evaluate(model, val_loader, device)

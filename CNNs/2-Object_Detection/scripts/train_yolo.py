@@ -16,8 +16,8 @@ from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
 
 #object_detection modules
 from object_detection.utils.tools import (get_arguments, get_scheduler)
-from object_detection.models.yolov3.yolov3_darknet import Darknet
-from object_detection.datasets.bdd100k_yolo import BDD100kDataset
+from object_detection.models.yolo.yolo_darknet import Darknet
+from object_detection.datasets.bdd100k import BDD100kDataset
 from object_detection.engine import (create_detection_trainer, create_detection_evaluator)
 from object_detection.utils.evaluation import convert_to_coco_api 
 from object_detection.losses.yolo_loss import compute_loss as loss_fn
@@ -39,10 +39,10 @@ hyp = {'giou': 3.54, #1.0,  # giou loss gain
        'hsv_h': 0.0138,  # image HSV-Hue augmentation (fraction)
        'hsv_s': 0.678,  # image HSV-Saturation augmentation (fraction)
        'hsv_v': 0.36,  # image HSV-Value augmentation (fraction)
-       'degrees': 1.98 * 0,  # image rotation (+/- deg)
-       'translate': 0.05 * 0,  # image translation (+/- fraction)
-       'scale': 0.05 * 0,  # image scale (+/- gain)
-       'shear': 0.641 * 0}  # image shear (+/- deg)
+       'degrees': 1.98,  # image rotation (+/- deg)
+       'translate': 0.05,  # image translation (+/- fraction)
+       'scale': 0.05,  # image scale (+/- gain)
+       'shear': 0.641}  # image shear (+/- deg)
 
 
 args = get_arguments()
@@ -72,13 +72,17 @@ if (args.model == "yolov3" or args.model == "yolov3_spp" or args.model == "yolov
 if args.state_dict is not None:
     chkpt = torch.load(args.state_dict, map_location="cpu")
     model.load_state_dict(chkpt, strict=False)
-    
+
 model.to(device)
 
 if (args.dataset == 'bdd100k'):
-    # training set 
-    train_ds = BDD100kDataset(mode = "train", 
-                                img_size = 608, 
+    model.nc = 10 # number of classes 
+    model.hyp = hyp 
+    model.gr = 1.0
+    hyp['cls'] *= model.nc / 80
+    # training set
+    train_ds = DataMatrixDataset(mode = "train", 
+                                img_size = 896,
                                 batch_size = args.batch_size,
                                 augment = True,
                                 hyp = hyp,  # augmentation hyperparameters
@@ -86,14 +90,11 @@ if (args.dataset == 'bdd100k'):
 
 
     # validation set
-    val_ds = BDD100kDataset(mode = "val",
-                            img_size = 608,
+    val_ds = DataMatrixDataset(mode = "val",
+                            img_size = 896,
                             batch_size = args.batch_size,
                             hyp = hyp,
                             rect = True)
-    model.nc = 10
-    model.hyp = hyp 
-    model.gr = 0.0
 
 # training set dataloader
 train_loader = DataLoader(train_ds,
@@ -129,7 +130,8 @@ for k, v in dict(model.named_parameters()).items():
     elif "Conv2d.weight" in k:
         pg1 += [v]
     else:
-        pg0 += [v]    
+        pg0 += [v]  
+        
 optimizer = optim.SGD(pg0, lr=hyp['lr0'], momentum=hyp['momentum'], nesterov=True)
 optimizer.add_param_group({'params': pg1, 'weight_decay': hyp['weight_decay']})  # add pg1 with weight_decay
 optimizer.add_param_group({'params': pg2})  # add pg2 (biases)
@@ -164,7 +166,7 @@ trainer.add_event_handler(
 
 if local_rank == 0:
     dirname = strftime("%d-%m-%Y_%Hh%Mm%Ss", localtime())
-    dirname = "checkpoints/" +  args.model + "/{}".format(dirname)
+    dirname = "checkpoints/" + args.dataset + "/" + args.model + "/{}".format(dirname)
     
     checkpointer = ModelCheckpoint(
         dirname=dirname,
@@ -178,5 +180,3 @@ if local_rank == 0:
     )
 
 trainer.run(train_loader, max_epochs=args.epochs)
-
-

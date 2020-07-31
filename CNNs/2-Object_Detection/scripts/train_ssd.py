@@ -14,7 +14,7 @@ from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
 
 
 #object_detection modules
-from object_detection.datasets.bdd100k import BDD100kDataset
+from object_detection.datasets.bdd100k import BDD100kDataset 
 from object_detection.models.ssd.ssd import (MobileNetV2SSD_Lite, Resnet50SSD)
 from object_detection.utils.tools import (get_arguments, get_scheduler)
 from object_detection.utils.ssd.ssd_utils import  MatchPrior, freeze_net_layers
@@ -133,8 +133,7 @@ evaluator = create_detection_evaluator(args.model,
                                        model, 
                                        device, 
                                        coco_api_val_dataset,
-                                       logging = local_rank == 0
-                                       )
+                                       logging = local_rank == 0)
 
 trainer = create_detection_trainer(args.model, 
                                    model, 
@@ -152,7 +151,7 @@ trainer.add_event_handler(
 
 if local_rank == 0:
     dirname = strftime("%d-%m-%Y_%Hh%Mm%Ss", localtime())
-    dirname = "checkpoints/" + args.feature_extractor + args.model + "/{}".format(dirname)
+    dirname = "checkpoints/" + args.dataset + "/" + args.feature_extractor + args.model + "/{}".format(dirname)
     
     checkpointer = ModelCheckpoint(
         dirname=dirname,
@@ -166,5 +165,3 @@ if local_rank == 0:
     )
 
 trainer.run(train_loader, max_epochs=args.epochs)
-
-

@@ -56,12 +56,14 @@ if args.model == 'faster':
         model = resnet50_fasterRCNN(11)
 else:
     sys.exit("You did not pick the right script! Exiting...")
+    
+device = torch.device("cuda")
+train_tfms, val_tfms = get_tfms_faster(ds = args.dataset)
 
-train_tfms, val_tfms = get_tfms_faster()
 if args.dataset == 'bdd100k':
-  val_ds = BDD100kDataset(transforms = val_tfms, mode = 'val')
+  test_ds = BDD100kDataset(transforms = val_tfms, mode = 'test')
   val_loader = DataLoader(
-     val_ds,
+     test_ds,
      batch_size = args.batch_size,
      shuffle=False,
      drop_last=False,
@@ -76,8 +78,6 @@ if args.state_dict:
 else:
     raise ValueError("You have to load a model through the --state_dict argument!")
 
-model.to(args.device)
-evaluate(model, val_loader, args.device)
-
-
+model.to(device)
+evaluate(model, val_loader, device)
 

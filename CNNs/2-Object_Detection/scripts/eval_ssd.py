@@ -4,25 +4,25 @@ import numpy as np
 import time 
 
 from object_detection.models.ssd.ssd import MobileNetV2SSD_Lite, Resnet50SSD
-from object_detection.datasets.bdd100k import BDD100kDataset
+from object_detection.datasets.bdd100k import BDD100kDataset 
 from object_detection.utils.evaluation import convert_to_coco_api, CocoEvaluator
 from object_detection.utils.tools import get_arguments
 from object_detection.models.ssd.predictor import Predictor
 
 
-def evaluate(predictor, val_ds):
+def evaluate(predictor, test_ds):
     """Evaluation of the validation set 
     Keyword arguments:
     - predictor: model after training with the respective weights
     - data_loader: validaton set in the loader format
     - device: device on which the network will be evaluated
     """
-    coco = convert_to_coco_api(val_ds)
+    coco = convert_to_coco_api(test_ds)
     coco_evaluator = CocoEvaluator(coco)
     evaluator_times = []
     proc_times = []
-    for i in range(len(val_ds)):
-        image, targets = val_ds[i]
+    for i in range(len(test_ds)):
+        image, targets = test_ds[i]
         init = time.time()
         boxes, labels, probs = predictor.predict(image, 10 , 0.2)
         proc_times.append(time.time() - init)
@@ -46,8 +46,7 @@ def evaluate(predictor, val_ds):
 
 
 args = get_arguments()
-dev = args.device if args.device is not None else "cpu"
-device = torch.device(dev)
+device = torch.device("cuda")
 
 if (args.model == "ssd512" and args.feature_extractor == "mobilenetv2"):
     from object_detection.utils.ssd import ssd512_config as config
@@ -58,8 +57,8 @@ elif (args.model == "ssd512" and args.feature_extractor == "resnet50"):
 else:
     sys.exit("You did not pick the right script! Exiting...")
 
-if (args.dataset == 'datamatrix'):
-  val_ds = DataMatrixDataset(mode = 'val')
+if (args.dataset == 'bdd100k'):
+  test_ds = BDD100kDataset(mode = 'test')
   
   
 # Loading weights to the network
@@ -80,4 +79,4 @@ predictor = Predictor(net,config.image_size,
                      sigma = sigma,
                      device = device)
 
-evaluate(predictor, val_ds)
+evaluate(predictor, test_ds)
