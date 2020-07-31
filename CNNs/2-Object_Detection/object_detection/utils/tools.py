@@ -134,7 +134,7 @@ def get_scheduler(optimizer,epochs, learning_rate, train_loader_size):
                                           'lr',
                                           learning_rate, 
                                           1e-6,
-                                          epochs * train_loader_size,)
+                                          learning_rate/1000,)
     scheduler = create_lr_scheduler_with_warmup(scheduler, 
                                                 0, 
                                                 learning_rate, 
