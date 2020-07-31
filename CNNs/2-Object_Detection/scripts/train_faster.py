@@ -40,8 +40,8 @@ device = torch.device("cuda")
 
 if args.dataset == "bdd100k":
     train_tfms, val_tfms = get_tfms_faster(ds = "bdd100k")
-    train_ds = DataMatrixDataset(transforms = train_tfms)
-    val_ds = DataMatrixDataset(transforms = val_tfms, mode = 'val')
+    train_ds = BDD100kDataset(transforms = train_tfms)
+    val_ds = BDD100kDataset(transforms = val_tfms, mode = 'val')
     n_classes = 11
 elif args.dataset == "coco":
     train_tfms, val_tfms = get_tfms_faster(ds = "coco")
