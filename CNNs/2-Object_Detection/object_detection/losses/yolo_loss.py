@@ -33,6 +33,13 @@ class FocalLoss(nn.Module):
             return loss
         
 def compute_loss(p, targets, model):  # predictions, targets, model
+
+
+    multi_gpu = type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+    if multi_gpu:
+        model = model.module
+
+
     ft = torch.cuda.FloatTensor if p[0].is_cuda else torch.Tensor
     lcls, lbox, lobj = ft([0]), ft([0]), ft([0])
     tcls, tbox, indices, anchors = build_targets(p, targets, model)  # targets
@@ -107,9 +114,9 @@ def build_targets(p, targets, model):
     off = torch.tensor([[1, 0], [0, 1], [-1, 0], [0, -1]], device=targets.device).float()  # overlap offsets
 
     style = None
-    multi_gpu = type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+    
     for i, j in enumerate(model.yolo_layers):
-        anchors = model.module.module_list[j].anchor_vec if multi_gpu else model.module_list[j].anchor_vec
+        anchors = model.module_list[j].anchor_vec
         gain[2:] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
         na = anchors.shape[0]  # number of anchors
         at = torch.arange(na).view(na, 1).repeat(1, nt)  # anchor tensor, same as .repeat_interleave(nt)
@@ -118,7 +125,7 @@ def build_targets(p, targets, model):
         a, t, offsets = [], targets * gain, 0
         if nt:
             # r = t[None, :, 4:6] / anchors[:, None]  # wh ratio
-            # j = torch.max(r, 1. / r).max(2)[0] < model.hyp['anchor_t']  # compare
+            # j = torch.max(r, 1. / r).max(2)[0] < model.module.hyp['anchor_t']  # compare
             j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n) = wh_iou(anchors(3,2), gwh(n,2))
             a, t = at[j], t.repeat(na, 1, 1)[j]  # filter
 

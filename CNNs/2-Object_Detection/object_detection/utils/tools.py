@@ -133,10 +133,10 @@ def get_scheduler(optimizer,epochs, learning_rate, train_loader_size):
     scheduler =   CosineAnnealingScheduler(optimizer, 
                                           'lr',
                                           learning_rate, 
-                                          1e-6,
-                                          learning_rate/1000,)
+                                          learning_rate/1000,
+                                          epochs * train_loader_size)
     scheduler = create_lr_scheduler_with_warmup(scheduler, 
                                                 0, 
-                                                learning_rate, 
-                                                1000)
+                                                1000, 
+                                                learning_rate)
     return scheduler

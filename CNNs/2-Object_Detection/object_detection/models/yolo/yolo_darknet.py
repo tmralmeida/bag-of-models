@@ -49,9 +49,9 @@ def create_modules(module_defs, img_size, cfg):
             if mdef['activation'] == 'leaky':  # activation study https://github.com/ultralytics/yolov3/issues/441
                 modules.add_module('activation', nn.LeakyReLU(0.1, inplace=True))
             elif mdef['activation'] == 'swish':
-                modules.add_module('activation', Swish())
+                modules.add_module('activation', MemoryEfficientSwish())
             elif mdef['activation'] == 'mish':
-                modules.add_module('activation', Mish())
+                modules.add_module('activation', MemoryEfficientMish())
 
         elif mdef['type'] == 'BatchNorm2d':
             filters = output_filters[-1]

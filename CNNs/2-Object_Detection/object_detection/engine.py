@@ -9,7 +9,7 @@ from ignite.contrib.handlers import ProgressBar
 from object_detection.utils.prepare_data import transform_inputs
 from object_detection.utils.evaluation import CocoEvaluator
 from object_detection.models.ssd.predictor import Predictor
-from object_detection.datasets.datamatrix_yolo import xyxy2xywh
+from object_detection.datasets.bdd100k_yolo import xyxy2xywh
 from object_detection.utils.yolo.yolo_utils import *
 
 
@@ -43,10 +43,12 @@ def train_data(model_name, model, batch, loss_fn, device):
         images = images.to(device).float() / 255.0
         targets = targets.to(device)
         
-        predictions = model(images)
+
+        with torch.cuda.amp.autocast():
+            predictions = model(images)
         
-        loss, loss_items = loss_fn(predictions, targets, model)
-        loss *= len(batch) / 64 
+            loss, loss_items = loss_fn(predictions, targets, model)
+            loss *= len(batch) / 64 
     return loss
         
 
@@ -54,6 +56,7 @@ def train_data(model_name, model, batch, loss_fn, device):
 def create_detection_trainer(model_name, 
                              model, 
                              optimizer, 
+                             grad_scaler,
                              device, 
                              val_loader,
                              evaluator, 
@@ -67,8 +70,9 @@ def create_detection_trainer(model_name,
         model.train()
         optimizer.zero_grad()
         loss = train_data(model_name, model, batch, loss_fn, device)
-        loss.backward()
-        optimizer.step()
+        grad_scaler.scale(loss).backward()
+        grad_scaler.step(optimizer)
+        grad_scaler.update()
         
         return loss.item()
     

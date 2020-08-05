@@ -1,17 +1,17 @@
 import torch
 import torch.optim as optim
 from torch import distributed as dist
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 import torch.optim.lr_scheduler as lr_scheduler
 import sys
 import itertools
 from time import localtime, strftime
 
-from apex import amp
-from apex.parallel import (DistributedDataParallel, convert_syncbn_model)
 
 from ignite.engine import Events
 from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
+
 
 
 #object_detection modules
@@ -82,34 +82,20 @@ if (args.dataset == 'bdd100k'):
     hyp['cls'] *= model.nc / 80
     # training set
     train_ds = BDD100kDataset(mode = "train", 
-                              img_size = 896,
+                              img_size = 640,
                               batch_size = args.batch_size,
                               augment = True,
-                              hyp = hyp,  # augmentation hyperparameters
+                              hyp = hyp,  # augmentation hyperparametersN/A
                               rect = args.imgs_rect)
 
 
     # validation set
     val_ds = BDD100kDataset(mode = "val",
-                            img_size = 896,
+                            img_size = 640,
                             batch_size = args.batch_size,
                             hyp = hyp,
                             rect = True)
 
-# training set dataloader
-train_loader = DataLoader(train_ds,
-                        batch_size=args.batch_size,
-                        num_workers=args.workers,
-                        shuffle=not args.imgs_rect,  # Shuffle=True unless rectangular training is used
-                        pin_memory=True,
-                        collate_fn=train_ds.collate_fn)
-
-# validatation set dataloader
-val_loader = DataLoader(val_ds,
-                        batch_size = args.batch_size,
-                        num_workers = args.workers,
-                        pin_memory = True,
-                        collate_fn = collate_fn)
 
 if args.distributed:
     kwargs = dict(num_replicas=world_size, rank=local_rank)
@@ -119,6 +105,24 @@ if args.distributed:
 else:
     train_sampler = None
     val_sampler = None
+
+
+# training set dataloader
+train_loader = DataLoader(train_ds,
+                        batch_size=args.batch_size,
+                        num_workers=args.workers,
+                        shuffle=not args.distributed,
+                        pin_memory=True,
+                        collate_fn=train_ds.collate_fn,
+                        sampler = train_sampler)
+
+# validatation set dataloader
+val_loader = DataLoader(val_ds,
+                        batch_size = args.batch_size,
+                        num_workers = args.workers,
+                        pin_memory = True,
+                        collate_fn = collate_fn,
+                        sampler = val_sampler)
 
 coco_api_val_dataset = convert_to_coco_api(val_ds)
 
@@ -141,18 +145,21 @@ del pg0, pg1, pg2
 scheduler = get_scheduler(optimizer,args.epochs, args.learning_rate, len(train_loader))
 
 if args.distributed:
-    model = convert_syncbn_model(model)
-    model = DistributedDataParallel(model)
+    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = DistributedDataParallel(model, device_ids = [local_rank], output_device=local_rank)
+
+grad_scaler = torch.cuda.amp.GradScaler()
 
 evaluator = create_detection_evaluator(args.model,
-                                       model, 
+                                       model,
                                        device, 
                                        coco_api_val_dataset,
                                        logging = local_rank == 0)
 
-trainer = create_detection_trainer(args.model, 
-                                   model, 
+trainer = create_detection_trainer(args.model,
+                                   model,
                                    optimizer, 
+                                   grad_scaler,
                                    device,
                                    val_loader,
                                    evaluator,
