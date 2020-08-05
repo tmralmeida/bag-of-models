@@ -3,11 +3,10 @@ import torch.optim as optim
 import sys
 import itertools
 from torch import distributed as dist
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from time import localtime, strftime
 
-from apex import amp
-from apex.parallel import (DistributedDataParallel, convert_syncbn_model)
 
 from ignite.engine import Events
 from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
@@ -110,8 +109,8 @@ loss_fn = MultiboxLoss(config.priors,
 
 
 if args.distributed:
-    model = convert_syncbn_model(model)
-    model = DistributedDataParallel(model)
+    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = DistributedDataParallel(model, device_ids = [local_rank], output_device = local_rank)
 
 evaluator = create_detection_evaluator(args.model,
                                        model, 

@@ -1,12 +1,12 @@
 import torch
 import torch.optim as optim
 from torch import distributed as dist
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import (DataLoader, DistributedSampler)
 from time import localtime, strftime
 from itertools import chain
 import sys
 
-from apex.parallel import (DistributedDataParallel, convert_syncbn_model)
 
 from ignite.engine import Events
 from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
@@ -107,8 +107,8 @@ optimizer = torch.optim.AdamW(
 scheduler = get_scheduler(optimizer,args.epochs, args.learning_rate, len(train_loader))
 
 if args.distributed:
-    model = convert_syncbn_model(model)
-    model = DistributedDataParallel(model)
+    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = DistributedDataParallel(model, device_ids = [local_rank], output_device = local_rank)
 
 
 evaluator = create_detection_evaluator(args.model,
@@ -124,7 +124,6 @@ trainer = create_detection_trainer(args.model,
                                    device,
                                    val_loader,
                                    evaluator,
-                                   loss_fn = None,
                                    logging = local_rank == 0
                                    )
 

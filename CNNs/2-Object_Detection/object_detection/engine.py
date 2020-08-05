@@ -56,10 +56,10 @@ def train_data(model_name, model, batch, loss_fn, device):
 def create_detection_trainer(model_name, 
                              model, 
                              optimizer, 
-                             grad_scaler,
                              device, 
                              val_loader,
                              evaluator, 
+                             grad_scaler=None,
                              loss_fn = None, 
                              logging = True):
     def update_fn(_trainer, batch):

@@ -159,10 +159,10 @@ evaluator = create_detection_evaluator(args.model,
 trainer = create_detection_trainer(args.model,
                                    model,
                                    optimizer, 
-                                   grad_scaler,
                                    device,
                                    val_loader,
                                    evaluator,
+                                   grad_scaler = grad_scaler,
                                    loss_fn = loss_fn,
                                    logging = local_rank == 0
                                    )
