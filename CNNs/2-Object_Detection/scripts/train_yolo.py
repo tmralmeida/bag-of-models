@@ -118,7 +118,7 @@ train_loader = DataLoader(train_ds,
 
 # validatation set dataloader
 val_loader = DataLoader(val_ds,
-                        batch_size = args.batch_size,
+                        batch_size = args.batch_size//2,
                         num_workers = args.workers,
                         pin_memory = True,
                         collate_fn = collate_fn,

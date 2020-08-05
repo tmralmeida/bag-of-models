@@ -141,7 +141,6 @@ class BDD100kDataset(Dataset):  # for training/testing
             target['image_id'] = image_id
             target['area'] = area
             target['iscrowd'] = iscrowd
-            target['shapes'] = shapes
             img = img[:, :, ::-1].transpose(2, 0, 1)  
             img = np.ascontiguousarray(img) 
             return torch.from_numpy(img), target
