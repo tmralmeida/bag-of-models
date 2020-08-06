@@ -32,16 +32,32 @@ and [torch.dist](#https://pytorch.org/tutorials/beginner/dist_overview.html) mod
 |---------------------|:----------------:|:------------------------------------:|-----------------------------------------------------------|
 | --dataset           |     `string`     | `"bdd100k"`                          |         Dataset                                           |
 | --model             |     `string`     | `"faster"`                           | Model to train: faster, ssd512, yolov3, yolov3spp,yolov4  |
-| --feature extractor |     `string`     | `"mobilenetv2"`                      | Feature extractors for models whose backbone is a conventional classification network        |
+| --feature_extractor |     `string`     | `"mobilenetv2"`                      | Feature extractors for models whose backbone is a conventional classification network        |
+| --pretrained        |     `bool`       | `True`                               | Pretrained backbones on ImageNet and COCO datasets for Faster R-CNN |
+| --batch_size        |     `int`       | `4`                                   | Batch size |
+| --epochs            |     `int`       | `10`                                  | Number of epochs |
+| --learning_rate     |     `int`       | `1e-3`                                | Learning rate value |
+| --weight_decay      |     `int`       | `1e-4`                                | Weight decay value |
+| --workers           |     `int`       | `8`                                   | Number of subprocesses to use for data loading |
+| --distributed       |      ---        |  ---                                  | For distributed training. True once used. |
+| --state_dict        |     `string`    | `""`                               | State dict path for models evaluation |
+| --imgs_rect         |     `bool`      | `True`                                   | False if mosaic augmentation on YOLOv4 |
+
 
 
 
 ## Single GPU  
 
-To train  the yolov4 model:
+To train  yolov4 model:
 
 ````
 python scripts/train_yolo.py --model yolov4 --batch_size 8 --epochs 30 --imgs_rect False
+````
+
+To evaluate the same model:
+
+````
+python scripts/eval_yolo.py --model yolov4 --batch_size 32 --state_dict <model.pt>
 ````
 
 ## Multi GPU
