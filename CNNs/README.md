@@ -21,7 +21,7 @@ This module is composed of several Jupyter notebooks with simple implementations
 
 With regard to the Object Detection task, these implementations yield an aggregation of an organized and clean set of models under Pytorch framework. 
 Those models can be trained in a single GPU or in a multi-GPU fashion depending on the input arguments. To do so, we use [Ignite](https://pytorch.org/ignite/)
-and [torch.dist](#https://pytorch.org/tutorials/beginner/dist_overview.html) module.
+and [dist](#https://pytorch.org/tutorials/beginner/dist_overview.html) module from Pytorch.
 
 
 ## Input Args
