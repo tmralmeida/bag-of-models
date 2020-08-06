@@ -1,12 +1,10 @@
-# bag-of-models-usage
-
 # Table of Contents
 - [Hardware](#hardware)
 - [Image Classifcation](#image-classification)
 - [Object Detection](#object-detection)
     * [Input Args](#input-args)
-    * [Single GPU](#single-gpu-training)
-    * [Multi GPU](#multi-gpu-training)
+    * [Single GPU](#single-gpu)
+    * [Multi GPU](#multi-gpu)
 - [Acknowledgements](#acknowledgements)
 
 
@@ -41,7 +39,7 @@ and [torch.dist](#https://pytorch.org/tutorials/beginner/dist_overview.html) mod
 | --workers           |     `int`       | `8`                                   | Number of subprocesses to use for data loading |
 | --distributed       |      ---        |  ---                                  | For distributed training. True once used. |
 | --state_dict        |     `string`    | `""`                               | State dict path for models evaluation |
-| --imgs_rect         |     `bool`      | `True`                                   | False if mosaic augmentation on YOLOv4 |
+| --imgs_rect         |     `bool`      | `True`                                   | False when using mosaic augmentation to YOLO models |
 
 
 
@@ -62,9 +60,10 @@ python scripts/eval_yolo.py --model yolov4 --batch_size 32 --state_dict <model.p
 
 ## Multi GPU
 
-To train the YOLOv4 model:
+To train the YOLOv4 model with mosaic augmentation:
 
 ````
+CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 scripts/train_yolo.py --model yolov4 --batch_size 8 --epochs 30 --imgs_rect False -dist
 
 ````
 
