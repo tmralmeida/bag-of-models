@@ -33,10 +33,10 @@ def train_data(model_name, model, batch, loss_fn, device):
         boxes = boxes.to(device)
         labels = labels.to(device)
 
-        confidence, locations = model(images)
-
-        regression_loss, classification_loss = loss_fn(confidence, locations, labels, boxes)
-        loss = regression_loss + classification_loss
+        with torch.cuda.amp.autocast():
+            confidence, locations = model(images)
+            regression_loss, classification_loss = loss_fn(confidence, locations, labels, boxes)
+            loss = regression_loss + classification_loss
     
     elif model_name == "yolov3" or model_name == "yolov3_spp" or model_name == "yolov4":
         images, targets, paths, _ = batch

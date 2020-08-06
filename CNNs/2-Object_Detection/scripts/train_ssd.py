@@ -87,6 +87,7 @@ train_loader = DataLoader(
     shuffle=not args.distributed,
     drop_last=True,
     num_workers=args.workers,
+    sampler=train_sampler
 )
 
 
