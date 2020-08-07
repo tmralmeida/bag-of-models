@@ -76,14 +76,11 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-debug.ipynb
-eval.ipynb
-export_onnx.ipynb
-results.ipynb
-yolo_debug.ipynb
+*.ipynb
 
 # models
 *.pth
+*.pt
 
 #videos
 *.mp4
