@@ -53,7 +53,6 @@ target_transform = MatchPrior(config.priors,
                               0.5)
 
 train_tfms = TrainAugmentation(config.image_size, config.image_mean, config.image_std)
-test_tfms = TestTransform(config.image_size, config.image_mean, config.image_std)
 
 
 if args.state_dict is not None:
