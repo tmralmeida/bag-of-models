@@ -107,9 +107,10 @@ optimizer = torch.optim.AdamW(
 scheduler = get_scheduler(optimizer,args.epochs, args.learning_rate, len(train_loader))
 
 if args.distributed:
-    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-    model = DistributedDataParallel(model, device_ids = [local_rank], output_device = local_rank)
+    # model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+    model = DistributedDataParallel(model, device_ids = [local_rank], output_device=local_rank)
 
+grad_scaler = torch.cuda.amp.GradScaler() 
 
 evaluator = create_detection_evaluator(args.model,
                                        model, 
@@ -124,6 +125,7 @@ trainer = create_detection_trainer(args.model,
                                    device,
                                    val_loader,
                                    evaluator,
+                                   grad_scaler = grad_scaler,
                                    logging = local_rank == 0
                                    )
 
