@@ -105,7 +105,7 @@ device = torch.device("cuda")
   
 if args.dataset == 'bdd100k':    
     test_ds = BDD100kDataset(mode = "val",
-                                img_size = 640,
+                                img_size = 512,
                                 batch_size = args.batch_size,
                                 hyp = hyp,
                                 rect = True)

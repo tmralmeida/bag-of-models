@@ -82,7 +82,7 @@ if (args.dataset == 'bdd100k'):
     hyp['cls'] *= model.nc / 80
     # training set
     train_ds = BDD100kDataset(mode = "train", 
-                              img_size = 640,
+                              img_size = 512,
                               batch_size = args.batch_size,
                               augment = True,
                               hyp = hyp,  # augmentation hyperparametersN/A
@@ -91,7 +91,7 @@ if (args.dataset == 'bdd100k'):
 
     # validation set
     val_ds = BDD100kDataset(mode = "val",
-                            img_size = 640,
+                            img_size = 512,
                             batch_size = args.batch_size,
                             hyp = hyp,
                             rect = True)

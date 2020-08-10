@@ -81,7 +81,7 @@ target/
 # models
 *.pth
 *.pt
-
+*.weights
 #videos
 *.mp4
 
