@@ -74,6 +74,20 @@ if args.state_dict is not None:
     model.load_state_dict(chkpt, strict=False)
 
 model.to(device)
+#Optimizer    
+pg0, pg1, pg2 = [], [], [] # optimizer parameter groups
+for k, v in dict(model.named_parameters()).items():
+    if '.bias' in k:
+        pg2 += [v]
+    elif 'Conv2d.weight' in k:
+        pg1 += [v]
+    else:
+        pg0 += [v]  
+        
+optimizer = optim.SGD(pg0, lr=hyp['lr0'], momentum=hyp['momentum'], nesterov=True)
+optimizer.add_param_group({'params': pg1, 'weight_decay': hyp['weight_decay']})  # add pg1 with weight_decay
+optimizer.add_param_group({'params': pg2})  # add pg2 (biases)
+del pg0, pg1, pg2
 
 if (args.dataset == 'bdd100k'):
     model.nc = 10 # number of classes 
@@ -126,20 +140,6 @@ val_loader = DataLoader(val_ds,
 
 coco_api_val_dataset = convert_to_coco_api(val_ds)
 
-#Optimizer    
-pg0, pg1, pg2 = [], [], [] # optimizer parameter groups
-for k, v in dict(model.named_parameters()).items():
-    if ".bias" in k:
-        pg2 += [v]
-    elif "Conv2d.weight" in k:
-        pg1 += [v]
-    else:
-        pg0 += [v]  
-        
-optimizer = optim.SGD(pg0, lr=hyp['lr0'], momentum=hyp['momentum'], nesterov=True)
-optimizer.add_param_group({'params': pg1, 'weight_decay': hyp['weight_decay']})  # add pg1 with weight_decay
-optimizer.add_param_group({'params': pg2})  # add pg2 (biases)
-del pg0, pg1, pg2
 
 #Scheduler 
 scheduler = get_scheduler(optimizer,args.epochs, args.learning_rate, len(train_loader))
