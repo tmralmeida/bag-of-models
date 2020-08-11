@@ -60,7 +60,7 @@ python scripts/eval_yolo.py --model yolov4 --batch_size 32 --state_dict <model.p
 
 ## Multi GPU
 
-To train the YOLOv4 model with mosaic augmentation:
+To train YOLOv4 model in BDD100k with mosaic augmentation:
 
 ````
 CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 scripts/train_yolo.py --model yolov4 --batch_size 8 --epochs 30 --imgs_rect False -dist
