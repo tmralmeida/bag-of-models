@@ -1,21 +1,24 @@
-import torch
-import cv2 
-import matplotlib.pyplot as plt
-import json
+import cv2
 import os
+import json
 import numpy as np
-import pickle
+import torch
 
-PATH_IMG_INFO_TRAIN = "/srv/datasets/coco/annotations/train_imgs.txt"
-PATH_ANNS_INFO_TRAIN = "/srv/datasets/coco/annotations/anns_info_train.json"
+
+PATH_ANNS_INFO_TRAIN = "/srv/datasets/coco/annotations/instances_train2017.json"
 PATH_IMAGES_TRAIN = "/srv/datasets/coco/images/train2017"
 
-PATH_IMG_INFO_VAL = "/srv/datasets/coco/annotations/test_imgs.txt"
-PATH_ANNS_INFO_VAL = "/srv/datasets/coco/annotations/anns_info_val.json"
+PATH_ANNS_INFO_VAL = "/srv/datasets/coco/annotations/instances_train2017.json"
 PATH_IMAGES_VAL = "/srv/datasets/coco/images/val2017"
 
-
 class COCODetection(object):
+    """COCO dataset for object detection 
+    Keyword arguments:
+    - transforms: transformations to be applied based on
+    - target transforms: for the SSD model
+    albumentations library
+    - mode (train or val)     
+    """
     def __init__(self, transforms = None, target_transform = None, mode = "train"):
         self.transforms = transforms 
         self.target_transform = target_transform
@@ -23,20 +26,15 @@ class COCODetection(object):
         
         if self.mode == "train" or self.mode == "val":
             if self.mode=="train":
-                img_info_file = PATH_IMG_INFO_TRAIN
                 anns_info_file = PATH_ANNS_INFO_TRAIN
                 imgs_path = PATH_IMAGES_TRAIN
             else:
-                img_info_file = PATH_IMG_INFO_VAL
                 anns_info_file = PATH_ANNS_INFO_VAL
                 imgs_path = PATH_IMAGES_VAL
 
-            with open(img_info_file, "rb") as fp:   # Unpickling
-                imgs_data = pickle.load(fp)
             with open(anns_info_file) as json_file:
                 anns_data = json.load(json_file)
                 
-            self.imgs_data = imgs_data
             self.anns_data = anns_data
             self.imgs_path = imgs_path
 
@@ -45,19 +43,20 @@ class COCODetection(object):
         
     
     def __getitem__(self, idx):
-        img_info = self.imgs_data[idx]
-        filename = img_info["filename"]
-        img_id = img_info["id"]
-        
+        image_info = self.anns_data["images"][idx]
+        filename = image_info["file_name"]
+        image_id = image_info["id"]
+        anns_img = [ann for ann in anns_data["annotations"] if ann["image_id"] == image_id]
+
         img = cv2.imread(os.path.join(self.imgs_path, filename))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         width, height = img.shape[1], img.shape[0]
         img = np.array(img)
         
-        ann_boxes = self.anns_data[str(img_id)]["boxes"] #[x, y, w, h]
-        labels = self.anns_data[str(img_id)]["labels"]
-        areas = self.anns_data[str(img_id)]["area"]
-        iscrowd = self.anns_data[str(img_id)]["iscrowd"]
+        ann_boxes = [ann["bbox"] for ann in anns_img]  #[x, y, w, h]
+        labels = [ann["category_id"] for ann in anns_img]
+        areas = [ann["area"] for ann in anns_img]
+        iscrowd = [ann["iscrowd"] for ann in anns_img]
         
         boxes_xywh = np.array(ann_boxes)
         # boxes to [xmin, y_min, x_max, y_max]
@@ -75,7 +74,7 @@ class COCODetection(object):
         target = {}
         target["boxes"] = boxes
         target["labels"] = labels
-        target["image_id"] = torch.tensor(img_id)
+        target["image_id"] = torch.tensor(image_id)
         target["area"] = torch.as_tensor(areas,dtype = torch.float32)
         target["iscrowd"] = torch.as_tensor(iscrowd, dtype = torch.int64)
         
@@ -99,6 +98,7 @@ class COCODetection(object):
             return img, boxes, labels 
         
         return img, target
+    
         
     def __len__(self):
         return len(self.imgs_data)
