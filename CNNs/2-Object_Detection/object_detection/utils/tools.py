@@ -124,12 +124,12 @@ def get_arguments():
         type=str2bool,
         required=False
     )
-    
+
     parser.add_argument(
         '--img_size',
         default = 512,
         type = int,
-        required = True,
+        required = False,
         help = "Image size for YOLO models --> multiple of 32"
     )
 
