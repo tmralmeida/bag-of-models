@@ -8,7 +8,7 @@ import torch
 PATH_ANNS_INFO_TRAIN = "/srv/datasets/coco/annotations/instances_train2017.json"
 PATH_IMAGES_TRAIN = "/srv/datasets/coco/images/train2017"
 
-PATH_ANNS_INFO_VAL = "/srv/datasets/coco/annotations/instances_train2017.json"
+PATH_ANNS_INFO_VAL = "/srv/datasets/coco/annotations/instances_val2017.json"
 PATH_IMAGES_VAL = "/srv/datasets/coco/images/val2017"
 
 class COCODetection(object):
