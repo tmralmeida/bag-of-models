@@ -88,10 +88,9 @@ class BDD100kDataset(Dataset):  # for training/testing
         hyp = self.hyp
         
         filename = self.labels_file["name"][idx]
-        img, (h0, w0), (h, w) = load_image(self, os.path.join(PATH_IMAGES, self.mode, filename))
-        shape = self.batch_shapes[self.batch[idx]] if self.rect else self.img_size
-        img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
-        shapes = (h0, w0), ((h / h0, w / w0), pad)
+        path_img = os.path.join(PATH_IMAGES, self.mode, filename)
+        img, (h0, w0), (h, w) = load_image(self, path_img)
+        
         
             
         #Labels
@@ -120,14 +119,23 @@ class BDD100kDataset(Dataset):  # for training/testing
         
     
         labels_ori = np.array(labels_ori, dtype = np.float32)
-        # Load labels
-        labels = []
-        labels = labels_ori.copy()
-        # Labels in pixels 
-        labels[:, 1] = ratio[0] * w * (labels_ori[:, 1] - labels_ori[:, 3] / 2) + pad[0]  # pad width
-        labels[:, 2] = ratio[1] * h * (labels_ori[:, 2] - labels_ori[:, 4] / 2) + pad[1]  # pad height
-        labels[:, 3] = ratio[0] * w * (labels_ori[:, 1] + labels_ori[:, 3] / 2) + pad[0]
-        labels[:, 4] = ratio[1] * h * (labels_ori[:, 2] + labels_ori[:, 4] / 2) + pad[1]
+
+        if self.mosaic:
+            img, labels = load_mosaic(self, idx, path_img, labels_ori)
+            shapes = None
+        else:
+            shape = self.batch_shapes[self.batch[idx]] if self.rect else self.img_size
+            img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
+            shapes = (h0, w0), ((h / h0, w / w0), pad)
+
+            # Load labels
+            labels = []
+            labels = labels_ori.copy()
+            # Labels in pixels 
+            labels[:, 1] = ratio[0] * w * (labels_ori[:, 1] - labels_ori[:, 3] / 2) + pad[0]  # pad width
+            labels[:, 2] = ratio[1] * h * (labels_ori[:, 2] - labels_ori[:, 4] / 2) + pad[1]  # pad height
+            labels[:, 3] = ratio[0] * w * (labels_ori[:, 1] + labels_ori[:, 3] / 2) + pad[0]
+            labels[:, 4] = ratio[1] * h * (labels_ori[:, 2] + labels_ori[:, 4] / 2) + pad[1]
         
         if self.mode == "val":
             boxes = torch.as_tensor(labels[:, 1:5], dtype = torch.float32)
@@ -207,13 +215,10 @@ def load_image(self, path_img):
     img = cv2.imread(path_img)  
     assert img is not None, 'Image Not Found ' + path_img
     h0, w0 = img.shape[:2]  # orig hw
-    if h0 > w0:
-        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        w0, h0 = img.shape[1], img.shape[0]
         
     r = self.img_size / max(h0, w0)  # resize image to img_size
-    if r < 1 or (self.augment and (r != 1)):  # always resize down, only resize up if training with augmentation
-        interp = cv2.INTER_LINEAR if self.augment else cv2.INTER_AREA  # LINEAR for training, AREA for testing
+    if r != 1:  # always resize down, only resize up if training with augmentation
+        interp = cv2.INTER_AREA if r < 1 and not self.augment else cv2.INTER_LINEAR
         img = cv2.resize(img, (int(w0 * r), int(h0 * r)), interpolation=interp)
     return img, (h0, w0), img.shape[:2]  # img, hw_original, hw_resized
     
