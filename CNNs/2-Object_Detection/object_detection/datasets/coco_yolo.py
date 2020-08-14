@@ -104,7 +104,7 @@ class COCODetection(Dataset):
             labels[:, 3] = ratio[0] * w * (labels_ori[:, 1] + labels_ori[:, 3] / 2) + pad[0]
             labels[:, 4] = ratio[1] * h * (labels_ori[:, 2] + labels_ori[:, 4] / 2) + pad[1]
         
-        if self.mode == "val":
+        if self.mode == "val2017":
             boxes = torch.as_tensor(labels[:, 1:5], dtype = torch.float32)
             labels = torch.as_tensor(lbls, dtype = torch.int64)
             image_id = torch.tensor(image_id)
