@@ -39,14 +39,14 @@ class COCODetection(object):
             self.imgs_path = imgs_path
 
         else:
-            raise Exception("Oops. There are only two modes: train and val!")
+            raise Exception("Oops. There are only two modes: 'train' and 'val'!")
         
     
     def __getitem__(self, idx):
         image_info = self.anns_data["images"][idx]
         filename = image_info["file_name"]
         image_id = image_info["id"]
-        anns_img = [ann for ann in anns_data["annotations"] if ann["image_id"] == image_id]
+        anns_img = [ann for ann in self.anns_data["annotations"] if ann["image_id"] == image_id]
 
         img = cv2.imread(os.path.join(self.imgs_path, filename))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
