@@ -5,7 +5,8 @@ import numpy as np
 import time 
 
 from object_detection.models.yolo.yolo_darknet import Darknet
-from object_detection.datasets.bdd100k_yolo import BDD100kDataset 
+from object_detection.datasets.bdd100k_yolo import BDD100kDataset
+from object_detection.datasets.coco_yolo import COCODetection 
 from object_detection.utils.evaluation import convert_to_coco_api, CocoEvaluator
 from object_detection.utils.tools import get_arguments
 from object_detection.utils.prepare_data import transform_inputs, collate_fn
@@ -104,17 +105,29 @@ else:
 device = torch.device("cuda")
   
 if args.dataset == 'bdd100k':    
-    test_ds = BDD100kDataset(mode = "val",
-                                img_size = 512,
-                                batch_size = args.batch_size,
-                                hyp = hyp,
-                                rect = True)
+    val_ds = BDD100kDataset(mode = "val",
+                             img_size = 512,
+                             batch_size = args.batch_size,
+                             hyp = hyp,
+                             rect = True)
     
-    val_loader = DataLoader(test_ds,
-                        batch_size = args.batch_size,
-                        num_workers = args.workers,
-                        pin_memory = True,
-                        collate_fn = collate_fn)
+    val_loader = DataLoader(val_ds,
+                            batch_size = args.batch_size,
+                            num_workers = args.workers,
+                            pin_memory = True,
+                            collate_fn = collate_fn)
+elif args.dataset == 'coco':
+    val_ds = COCODetection(mode = "val",
+                           img_size = 512,
+                           batch_size = args.batch_size,
+                           hyp = hyp,
+                           rect = True)
+    
+    val_loader = DataLoader(val_ds,
+                            batch_size = args.batch_size,
+                            num_workers = args.workers,
+                            pin_memory = True,
+                            collate_fn = collate_fn)
     
 if args.state_dict:
     state_dict = torch.load(args.state_dict, map_location='cpu')

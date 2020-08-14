@@ -18,6 +18,7 @@ from ignite.handlers import (global_step_from_engine, ModelCheckpoint)
 from object_detection.utils.tools import (get_arguments, get_scheduler)
 from object_detection.models.yolo.yolo_darknet import Darknet
 from object_detection.datasets.bdd100k_yolo import BDD100kDataset
+from object_detection.datasets.coco_yolo import COCODetection
 from object_detection.engine import (create_detection_trainer, create_detection_evaluator)
 from object_detection.utils.evaluation import convert_to_coco_api 
 from object_detection.losses.yolo_loss import compute_loss as loss_fn
@@ -91,15 +92,12 @@ del pg0, pg1, pg2
 
 if (args.dataset == 'bdd100k'):
     model.nc = 10 # number of classes 
-    model.hyp = hyp 
-    model.gr = 1.0
-    hyp['cls'] *= model.nc / 80
     # training set
     train_ds = BDD100kDataset(mode = "train", 
                               img_size = 512,
                               batch_size = args.batch_size,
                               augment = True,
-                              hyp = hyp,  # augmentation hyperparametersN/A
+                              hyp = hyp,  # augmentation hyperparameters
                               rect = args.imgs_rect)
 
 
@@ -109,6 +107,26 @@ if (args.dataset == 'bdd100k'):
                             batch_size = args.batch_size,
                             hyp = hyp,
                             rect = True)
+elif (args.dataset == 'coco'):
+    model.nc = 90
+    # training set 
+    train_ds = COCODetection(mode = "train", 
+                             img_size = 512,
+                             batch_size = args.batch_size,
+                             augment = True,
+                             hyp = hyp,  # augmentation hyperparameters
+                             rect = args.imgs_rect)
+
+
+    # validation set
+    val_ds = COCODetection(mode = "val",
+                           batch_size = args.batch_size,
+                           hyp = hyp,
+                           rect = True)
+
+model.hyp = hyp 
+model.gr = 1.0
+hyp['cls'] *= model.nc / 80
 
 
 if args.distributed:
