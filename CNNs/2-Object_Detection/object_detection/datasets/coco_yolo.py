@@ -94,7 +94,6 @@ class COCODetection(Dataset):
             shape = self.batch_shapes[self.batch[idx]] if self.rect else self.img_size
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
             shapes = (h0, w0), ((h / h0, w / w0), pad)
-        
             # Load labels
             labels = []
             labels = labels_ori.copy()
@@ -113,6 +112,7 @@ class COCODetection(Dataset):
             target["iscrowd"] = torch.as_tensor(iscrowd, dtype = torch.int64)
             target['boxes'] = boxes
             target['labels'] = labels
+            target['image_id'] = image_id
             img = img[:, :, ::-1].transpose(2, 0, 1)  
             img = np.ascontiguousarray(img) 
             return torch.from_numpy(img), target
