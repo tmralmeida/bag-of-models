@@ -205,7 +205,7 @@ def load_image(self, path_img):
     # loads 1 image from dataset, returns img, original hw, resized hw
     
     img = cv2.imread(path_img)  
-    assert img is not None, 'Image Not Found ' + img_path
+    assert img is not None, 'Image Not Found ' + path_img
     h0, w0 = img.shape[:2]  # orig hw
     if h0 > w0:
         img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
