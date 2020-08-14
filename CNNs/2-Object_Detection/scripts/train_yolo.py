@@ -94,7 +94,7 @@ if (args.dataset == 'bdd100k'):
     model.nc = 10 # number of classes 
     # training set
     train_ds = BDD100kDataset(mode = "train", 
-                              img_size = 512,
+                              img_size = args.img_size,
                               batch_size = args.batch_size,
                               augment = True,
                               hyp = hyp,  # augmentation hyperparameters
@@ -103,7 +103,7 @@ if (args.dataset == 'bdd100k'):
 
     # validation set
     val_ds = BDD100kDataset(mode = "val",
-                            img_size = 512,
+                            img_size = args.img_size,
                             batch_size = args.batch_size,
                             hyp = hyp,
                             rect = True)
@@ -111,7 +111,7 @@ elif (args.dataset == 'coco'):
     model.nc = 90
     # training set 
     train_ds = COCODetection(mode = "train", 
-                             img_size = 512,
+                             img_size = args.img_size,
                              batch_size = args.batch_size,
                              augment = True,
                              hyp = hyp,  # augmentation hyperparameters
@@ -120,6 +120,7 @@ elif (args.dataset == 'coco'):
 
     # validation set
     val_ds = COCODetection(mode = "val",
+                           img_size = args.imgs_size,
                            batch_size = args.batch_size,
                            hyp = hyp,
                            rect = True)

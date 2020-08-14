@@ -106,7 +106,7 @@ device = torch.device("cuda")
   
 if args.dataset == 'bdd100k':    
     val_ds = BDD100kDataset(mode = "val",
-                             img_size = 512,
+                             img_size = args.img_size,
                              batch_size = args.batch_size,
                              hyp = hyp,
                              rect = True)
@@ -118,7 +118,7 @@ if args.dataset == 'bdd100k':
                             collate_fn = collate_fn)
 elif args.dataset == 'coco':
     val_ds = COCODetection(mode = "val",
-                           img_size = 512,
+                           img_size = args.img_size,
                            batch_size = args.batch_size,
                            hyp = hyp,
                            rect = True)
