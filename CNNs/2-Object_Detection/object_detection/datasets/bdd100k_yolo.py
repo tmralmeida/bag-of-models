@@ -86,13 +86,10 @@ class BDD100kDataset(Dataset):  # for training/testing
             
     def __getitem__(self, idx):
         hyp = self.hyp
-        
         filename = self.labels_file["name"][idx]
         path_img = os.path.join(PATH_IMAGES, self.mode, filename)
         img, (h0, w0), (h, w) = load_image(self, path_img)
-        
-        
-            
+ 
         #Labels
         lbl_file_row = self.labels_file[self.labels_file.index == idx ]
         num_objs = len(lbl_file_row["labels"][idx])
@@ -230,20 +227,20 @@ def augment_hsv(img, hgain=0.5, sgain=0.5, vgain=0.5):
     cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
 
 
-def load_mosaic(self, index):
+def load_mosaic(self, index, path_img, norm_labels):
     # loads images in a mosaic
 
     labels4 = []
     s = self.img_size
     xc, yc = [int(random.uniform(s * 0.5, s * 1.5)) for _ in range(2)]  # mosaic center x, y
-    img4 = np.zeros((s * 2, s * 2, 3), dtype=np.uint8) + 128  # base image with 4 tiles
-    indices = [index] + [random.randint(0, len(self.labels) - 1) for _ in range(3)]  # 3 additional image indices
+    indices = [index] + [random.randint(0, len(self.imgs) - 1) for _ in range(3)]  # 3 additional image indices
     for i, index in enumerate(indices):
         # Load image
-        img, _, (h, w) = load_image(self, index)
+        img, _, (h, w) = load_image(self, path_img)
 
         # place img in img4
         if i == 0:  # top left
+            img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
             x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
             x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
         elif i == 1:  # top right
@@ -260,24 +257,15 @@ def load_mosaic(self, index):
         padw = x1a - x1b
         padh = y1a - y1b
 
-        # Load labels
-        label_path = self.label_files[index]
-        if os.path.isfile(label_path):
-            x = self.labels[index]
-            if x is None:  # labels not preloaded
-                with open(label_path, 'r') as f:
-                    x = np.array([x.split() for x in f.read().splitlines()], dtype=np.float32)
-
-            if x.size > 0:
-                # Normalized xywh to pixel xyxy format
-                labels = x.copy()
-                labels[:, 1] = w * (x[:, 1] - x[:, 3] / 2) + padw
-                labels[:, 2] = h * (x[:, 2] - x[:, 4] / 2) + padh
-                labels[:, 3] = w * (x[:, 1] + x[:, 3] / 2) + padw
-                labels[:, 4] = h * (x[:, 2] + x[:, 4] / 2) + padh
-            else:
-                labels = np.zeros((0, 5), dtype=np.float32)
-            labels4.append(labels)
+        # Labels
+        x = norm_labels
+        labels = x.copy()
+        if x.size > 0:  # Normalized xywh to pixel xyxy format
+            labels[:, 1] = w * (x[:, 1] - x[:, 3] / 2) + padw
+            labels[:, 2] = h * (x[:, 2] - x[:, 4] / 2) + padh
+            labels[:, 3] = w * (x[:, 1] + x[:, 3] / 2) + padw
+            labels[:, 4] = h * (x[:, 2] + x[:, 4] / 2) + padh
+        labels4.append(labels)
 
     # Concat/clip labels
     if len(labels4):
@@ -288,10 +276,10 @@ def load_mosaic(self, index):
     # Augment
     # img4 = img4[s // 2: int(s * 1.5), s // 2:int(s * 1.5)]  # center crop (WARNING, requires box pruning)
     img4, labels4 = random_affine(img4, labels4,
-                                  degrees=self.hyp['degrees'] * 1,
-                                  translate=self.hyp['translate'] * 1,
-                                  scale=self.hyp['scale'] * 1,
-                                  shear=self.hyp['shear'] * 1,
+                                  degrees=self.hyp['degrees'],
+                                  translate=self.hyp['translate'],
+                                  scale=self.hyp['scale'],
+                                  shear=self.hyp['shear'],
                                   border=-s // 2)  # border to remove
 
     return img4, labels4
