@@ -120,7 +120,7 @@ elif (args.dataset == 'coco'):
 
     # validation set
     val_ds = COCODetection(mode = "val",
-                           img_size = args.imgs_size,
+                           img_size = args.img_size,
                            batch_size = args.batch_size,
                            hyp = hyp,
                            rect = True)
