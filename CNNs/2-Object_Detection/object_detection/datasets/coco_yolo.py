@@ -9,7 +9,7 @@ import math
 from torch.utils.data import Dataset
 import albumentations as albu
 
-PATH_ANNS_INFO = "/srv/datasets/coco/annotations/instances_"
+PATH_ANNS_INFO = "/home/tmr/bag-of-models/CNNs/2-Object_Detection/object_detection/new_instances_"
 PATH_IMAGES = "/srv/datasets/coco/images/"
 
 
