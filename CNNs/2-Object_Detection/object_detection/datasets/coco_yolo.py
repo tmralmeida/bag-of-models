@@ -163,7 +163,7 @@ class COCODetection(Dataset):
 
 
     def __len__(self):
-        return len(self.imgs)
+        return len(self.anns_data["images"])
     
     @staticmethod
     def collate_fn(batch):
