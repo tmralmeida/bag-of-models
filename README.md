@@ -47,4 +47,4 @@ I am learning Deep Learning as possibly you are and I believe that the best way 
 Repos: [MobileNetV2 + Single Shot Multibox Detector](https://github.com/qfgaohao/pytorch-ssd) and [Ultralytics](https://github.com/ultralytics/yolov3)
 
 
-Computational power: [Lardemua](#https://github.com/lardemua)
+Computational power: [Lardemua](https://github.com/lardemua)
