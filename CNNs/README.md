@@ -1,11 +1,11 @@
 # Table of Contents
 - [Hardware](#hardware)
-- [Image Classifcation](#image-classification)
+- [Image Classification](#image-classification)
 - [Object Detection](#object-detection)
     * [Input Args](#input-args)
     * [Single GPU](#single-gpu)
     * [Multi GPU](#multi-gpu)
-- [Acknowledgements](#acknowledgements)
+
 
 
 # Hardware
@@ -68,9 +68,3 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node
 ````
 
 
-# Acknowledgements
-
-Repos: [MobileNetV2 + Single Shot Multibox Detector](https://github.com/qfgaohao/pytorch-ssd) and [Ultralytics](https://github.com/ultralytics/yolov3)
-
-
-Computational power: [lardemua](#https://github.com/lardemua)
