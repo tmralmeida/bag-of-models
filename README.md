@@ -19,7 +19,7 @@ This is a guide for Deep Learning practitioners. It covers Tensorflow and Pytorc
     * [Faster R-CNN](#faster-rcnn)
     * [SSD](#ssd)
     * [YoloV3](#yolov3)
-- [Acknowledgments](#acknowledgments)
+- [Acknowledgements](#acknowledgements)
 
 # Overview
 
