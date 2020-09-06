@@ -18,7 +18,7 @@ This is a guide for Deep Learning practitioners. It covers Tensorflow and Pytorc
   * [Object Detection](#object-detection)
     * [Faster R-CNN](#faster-rcnn)
     * [SSD](#ssd)
-    * [YoloV3](#yolov3)
+    * [YOLO](#yolo)
 - [Acknowledgements](#acknowledgements)
 
 # Overview
